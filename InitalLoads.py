@@ -13,5 +13,10 @@ salesAlltable = "food_mart.sales_fact_all"
 
 salesalldf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAlltable, user="root", password="root").load()
 
-salesalldf.show()
+salesalldf.createTempView("sales_table_all")
+
+dfTest = spark.sql("select * from sales_table_all where promotion_id == 1 and store_id = 1 and store_cost == 1.0")
+dfTest.show()
+
+print("The count is : " + str(salesalldf.count()))
 
