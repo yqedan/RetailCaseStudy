@@ -2,7 +2,7 @@
 
 ####Objectives:
 
-#####In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
+######In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
 
 ###Setup:
 
