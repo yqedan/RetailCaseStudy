@@ -9,14 +9,21 @@ spark = SparkSession.builder \
 
 url="jdbc:mysql://localhost:3306/food_mart"
 driver = "com.mysql.jdbc.Driver"
-salesAlltable = "food_mart.sales_fact_all"
+password = "root"
 
-salesalldf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAlltable, user="root", password="root").load()
+salesAllTable = "food_mart.sales_fact_all"
+promotionsTable = "food_mart.promotion"
+timeByDayTable = "food_mart.time_by_day"
+storeTable = "food_mart.store"
 
-salesalldf.createTempView("sales_table_all")
 
-dfTest = spark.sql("select * from sales_table_all where promotion_id == 1 and store_id = 1 and store_cost == 1.0")
-dfTest.show()
+salesAllDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAllTable, user="root", password=password).load()
+promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=promotionsTable, user="root", password=password).load()
+timeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=timeByDayTable, user="root", password=password).load()
+storeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=storeTable, user="root", password=password).load()
 
-print("The count is : " + str(salesalldf.count()))
+salesAllDf.write.format("com.databricks.spark.avro").save("/home/Yusuf/sales_avro")
+promotionsDf.write.format("com.databricks.spark.avro").save("/home/Yusuf/promotions_avro")
+timeDf.write.format("com.databricks.spark.avro").save("/home/Yusuf/timeByDay_avro")
+storeDf.write.format("com.databricks.spark.avro").save("/home/Yusuf/store_avro")
 
