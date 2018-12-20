@@ -1,43 +1,46 @@
- Objectives 
-In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
+#Retail Case Study
 
-Foodmart DB for MySQL can be downloaded from the below link: 
+####Objectives:
 
-Foodmart DB: http://pentaho.dlpage.phi-integration.com/mondrian/mysql-foodmart-database
+######In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
 
-Foodmart Schema: http://www2.dc.ufscar.br/~gbd/download/files/courses/DW&OLAP_2009/foodmart.jpg
+###Setup:
+
+  * Foodmart DB for MySQL can be downloaded from the below link: 
+
+  * Foodmart DB: http://pentaho.dlpage.phi-integration.com/mondrian/mysql-foodmart-database
+
+  * Foodmart Schema: http://www2.dc.ufscar.br/~gbd/download/files/courses/DW&OLAP_2009/foodmart.jpg
  
-Assignment: 
+###Assignment: 
 
-⦁	a. Find total Promotion sales generated on weekdays and weekends for each region, year & month
+  * Find total Promotion sales generated on weekdays and weekends for each region, year & month
  
-⦁	b. Find the most popular promotion which generated highest sales in each region 
+  * Find the most popular promotion which generated highest sales in each region 
 
-Steps Involved: 
+####Steps Involved: 
 
-⦁	Create pySpark scripts for initial and incremental loads. The script will read sales and promotion tables based on last_update_date column from mysql and store them in AVRO format in S3 buckets. You might want to add a last_update_date in the tables
+  *	Create pySpark scripts for initial and incremental loads. The script will read sales and promotion tables based on last_update_date column from mysql and store them in AVRO format in S3 buckets. You might want to add a last_update_date in the tables
 
-⦁	A second pySpark script will read the AVRO files, filter out all non-promotion records from input, join the promotion and sales tables and save the data in Parquet format in S3 buckets.
+  *	A second pySpark script will read the AVRO files, filter out all non-promotion records from input, join the promotion and sales tables and save the data in Parquet format in S3 buckets.
  
-⦁	The Parquet file is aggregated by regionID, promotionID, sales_year, sales_month to generate total StoreSales for weekdays and weekends and the output is saved as a CSV file in S3 buckets.
+  *	The Parquet file is aggregated by regionID, promotionID, sales_year, sales_month to generate total StoreSales for weekdays and weekends and the output is saved as a CSV file in S3 buckets.
 
-⦁	The CSV file generated is loaded into a Snowflake database.
+  *	The CSV file generated is loaded into a Snowflake database.
 
-⦁	 Following queries are executed on Snowflake table
+  *	 Following queries are executed on Snowflake table
  
-           Query1: List the total weekday sales & weekend sales for each promotions: 
+    * Query1: List the total weekday sales & weekend sales for each promotions: 
                    Following columns are required in output: 
                    Region ID, Promotion ID, Promotion Cost, total weekday sales, total weekend sales 
   
-           Query 2: List promotions, which generated highest total sales (weekday + weekend) in each region. 
-                   Following columns are required in output: 
-                   Region ID, Promotion ID, Promotion Cost, total sales 
+    * Query 2: List promotions, which generated highest total sales (weekday + weekend) in each region. Following columns are required in output: Region ID, Promotion ID, Promotion Cost, total sales 
 
-⦁	Automate the workflow using Airflow scheduler
+  *	Automate the workflow using Airflow scheduler
 
 
 Additional Assignment:
 
-⦁	a. Modify the spark code in step a. to write the result to Kafka topics called “RetailSales” and “PromoData”
+* Modify the spark code in step a. to write the result to Kafka topics called “RetailSales” and “PromoData”
 
-⦁	b. Write a Spark Kafka Consumer which will subscribe to above topics and write the output in AVRO format in S3 buckets.
+* Write a Spark Kafka Consumer which will subscribe to above topics and write the output in AVRO format in S3 buckets.
