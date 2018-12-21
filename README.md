@@ -1,10 +1,10 @@
-#Retail Case Study
+# Retail Case Study
 
-####Objectives:
+#### Objectives:
 
-######In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
+###### In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
 
-###Setup:
+### Setup:
 
   * Foodmart DB for MySQL can be downloaded from the below link: 
 
@@ -12,13 +12,13 @@
 
   * Foodmart Schema: http://www2.dc.ufscar.br/~gbd/download/files/courses/DW&OLAP_2009/foodmart.jpg
  
-###Assignment: 
+### Assignment: 
 
   * Find total Promotion sales generated on weekdays and weekends for each region, year & month
  
   * Find the most popular promotion which generated highest sales in each region 
 
-####Steps Involved: 
+#### Steps Involved: 
 
   *	Create pySpark scripts for initial and incremental loads. The script will read sales and promotion tables based on last_update_date column from mysql and store them in AVRO format in S3 buckets. You might want to add a last_update_date in the tables
 

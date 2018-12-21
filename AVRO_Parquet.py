@@ -5,17 +5,26 @@ from pyspark.sql import SparkSession
 
 spark = SparkSession.builder.getOrCreate()
 
-promotionDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/promotions_avro")
-salesDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/sales_avro")
-timeDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/timeByDay_avro")
-storeDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/store_avro")
+promotionDF = spark.read.format("com.databricks.spark.avro").load("[DIRECTORY]")
+salesDF = spark.read.format("com.databricks.spark.avro").load("[DIRECTORY]")
+timeDF = spark.read.format("com.databricks.spark.avro").load("[DIRECTORY]")
+storeDF = spark.read.format("com.databricks.spark.avro").load("[DIRECTORY]")
 
-SaSt_DF = salesDF.join(storeDF, salesDF.store_id == storeDF.store_id).drop(storeDF.store_id)
+SaSt_DF = salesDF.join(storeDF, salesDF.store_id == storeDF.store_id)
 
-STS_DF = SaSt_DF.join(timeDF, SaSt_DF.time_id == timeDF.time_id).drop(timeDF.time_id)
+STS_DF = SaSt_DF.join(timeDF, SaSt_DF.time_id == timeDF.time_id)
 
-joinedDF = promotionDF.join(STS_DF, promotionDF.promotion_id == STS_DF.promotion_id).drop(STS_DF.promotion_id)
+joinedDF = promotionDF.join(STS_DF, promotionDF.promotion_id == STS_DF.promotion_id)
 
-joinedDF.filter(promotionDF.promotion_id != "0").repartition(1).write.save("/home/Yusuf/joined_parquet")
+finalDF = joinedDF.select(promotionDF.promotion_id,
+                          storeDF.region_id,
+                          timeDF.the_year,
+                          timeDF.the_month,
+                          timeDF.the_day,
+                          salesDF.last_update,
+                          promotionDF.cost,
+                          salesDF.store_sales)
+
+finalDF.filter(promotionDF.promotion_id != "0").repartition(1).write.save("[DIRECTORY]")
 
 
