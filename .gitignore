@@ -8,6 +8,7 @@
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/
+venv
 
 # Generated files
 .idea/**/contentModel.xml
