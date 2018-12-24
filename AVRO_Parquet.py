@@ -27,5 +27,3 @@ finalDF = joinedDF.select(promotionDF.promotion_id.cast(IntegerType()),
                           salesDF.store_sales.cast(FloatType()))
 
 finalDF.filter(promotionDF.promotion_id != "0").repartition(1).write.save("/home/Yusuf/trg/joined_parquet")
-
-
