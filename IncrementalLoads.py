@@ -41,5 +41,7 @@ if salesAllDfLatest.count() > 0:
     # update file and close it if there was any new data
     lastUpdateFile.seek(0)
     lastUpdateFile.write(str(lastUpdate))
+else:
+    print("No new rows found...Aborting save!")
 # always close the file!
 lastUpdateFile.close()

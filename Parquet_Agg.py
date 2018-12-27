@@ -15,9 +15,9 @@ dfWeekdays = df.filter((col("the_day") == "Monday") | (col("the_day") == "Tuesda
 dfWeekends = df.filter((col("the_day") == "Saturday") | (col("the_day") == "Sunday"))
 
 # group by tables separately and add a matching column
-groupedDfWeekdays = dfWeekdays.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("store_sales").alias("weekday_sales"))
+groupedDfWeekdays = dfWeekdays.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost").alias("cost"), sum("store_sales").alias("weekday_sales"))
 groupedDfWeekdays = groupedDfWeekdays.withColumn("weekend_sales", groupedDfWeekdays.weekday_sales * 0.0)
-groupedDfWeekends = dfWeekends.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("store_sales").alias("weekend_sales"))
+groupedDfWeekends = dfWeekends.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost").alias("cost"), sum("store_sales").alias("weekend_sales"))
 groupedDfWeekends = groupedDfWeekends.withColumn("weekday_sales", groupedDfWeekends.weekend_sales * 0.0)
 
 # reorder columns on weekends for union
@@ -30,4 +30,4 @@ unionDf = groupedDfWeekdays.union(groupedDfWeekends)
 finalDF = unionDf.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("weekday_sales").alias("weekday_sales"),sum("weekend_sales").alias("weekend_sales"))
 
 # save your hard work!
-finalDF.repartition(1).write.format("csv").save("/home/Yusuf/trg/final_csv")
+finalDF.repartition(1).write.format("csv").mode("overwrite").save("/home/Yusuf/trg/final_csv")
