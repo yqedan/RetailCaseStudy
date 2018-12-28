@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 # To run entire dag:
 # shell> airflow resetdb
 # shell> airflow webserver -p 9990
-# shell> sudo airflow scheduler
+# shell> airflow scheduler
 # wait for the dag to be triggered by scheduler! and hopefully it wont fail! :)
 
 # To test one task like initial_load for example run this with today's date in YYYY-MM-DD format:
