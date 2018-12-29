@@ -33,13 +33,13 @@ dag = DAG(
 
 t1 = BashOperator(
     task_id='initial_load',
-    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
     dag=dag
 )
 
 t2 = BashOperator(
     task_id='avro_parquet',
-    bash_command= "spark-submit --packages com.databricks:spark-avro_2.11:4.0.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    bash_command= "spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
     dag=dag
 )
 
