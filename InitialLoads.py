@@ -1,15 +1,19 @@
+import boto3
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 InitialLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 InitialLoads.py
 
 spark = SparkSession.builder \
  .master("local") \
  .appName("Initial_Loads_For_Retail_Agg") \
  .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
+
+s3 = boto3.client('s3')
+bucketName = "yusufqedanbucket"
 
 url = "jdbc:mysql://localhost:3306/food_mart"
 driver = "com.mysql.jdbc.Driver"
@@ -38,3 +42,13 @@ lastUpdate = lastUpdate.select(lastUpdate.last_update.cast(IntegerType())).colle
 lastUpdateFile = open("/home/Yusuf/trg/last_update", "w")
 lastUpdateFile.seek(0)
 lastUpdateFile.write(str(lastUpdate))
+lastUpdateFile.close()
+
+s3.put_object(Bucket=bucketName, Key="trg/last_update", Body=open("/home/Yusuf/trg/last_update", 'rb'))
+
+# s3.put_object(Bucket=bucketName, Key="trg/sales_avro", Body=open("/home/Yusuf/trg/sales_avro", 'rb'))
+# s3.put_object(Bucket=bucketName, Key="trg/promotions_avro", Body=open("/home/Yusuf/trg/promotions_avro", 'rb'))
+# s3.put_object(Bucket=bucketName, Key="trg/timeByDay_avro", Body=open("/home/Yusuf/trg/timeByDay_avro", 'rb'))
+# s3.put_object(Bucket=bucketName, Key="trg/store_avro", Body=open("/home/Yusuf/trg/store_avro", 'rb'))
+
+
