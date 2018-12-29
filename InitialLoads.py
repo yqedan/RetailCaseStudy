@@ -1,4 +1,6 @@
 import boto3
+import os
+import tempfile
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
@@ -30,25 +32,33 @@ salesAllDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=s
 promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=promotionsTable, user=user, password=password).load()
 timeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=timeByDayTable, user=user, password=password).load()
 storeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=storeTable, user=user, password=password).load()
-# save to new directories
-salesAllDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/sales_avro")
-promotionsDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/promotions_avro")
-timeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/timeByDay_avro")
-storeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/store_avro")
+
 # grab last update value for saving
 lastUpdate = salesAllDf.select(max("last_update").alias("last_update"))
 lastUpdate = lastUpdate.select(lastUpdate.last_update.cast(IntegerType())).collect()[0].asDict().get("last_update")
-# save the new file with value
-lastUpdateFile = open("/home/Yusuf/trg/last_update", "w")
-lastUpdateFile.seek(0)
+
+# save the last update file to s3
+lastUpdateTempFile = tempfile.NamedTemporaryFile()
+lastUpdateFile = open(lastUpdateTempFile.name, 'w')
 lastUpdateFile.write(str(lastUpdate))
 lastUpdateFile.close()
-
-s3.put_object(Bucket=bucketName, Key="trg/last_update", Body=open("/home/Yusuf/trg/last_update", 'rb'))
-
-# s3.put_object(Bucket=bucketName, Key="trg/sales_avro", Body=open("/home/Yusuf/trg/sales_avro", 'rb'))
-# s3.put_object(Bucket=bucketName, Key="trg/promotions_avro", Body=open("/home/Yusuf/trg/promotions_avro", 'rb'))
-# s3.put_object(Bucket=bucketName, Key="trg/timeByDay_avro", Body=open("/home/Yusuf/trg/timeByDay_avro", 'rb'))
-# s3.put_object(Bucket=bucketName, Key="trg/store_avro", Body=open("/home/Yusuf/trg/store_avro", 'rb'))
+s3.put_object(Bucket=bucketName, Key="trg/last_update", Body=open(lastUpdateTempFile.name, 'rb'))
+lastUpdateFile.close()
 
 
+# a function we will call for each avro directory we save to s3
+def write_avro_to_s3(sub_dir_name, data_frame):
+    path = os.path.join(tempfile.mkdtemp(), sub_dir_name)
+    data_frame.write.format("com.databricks.spark.avro").save(path)
+    index = 0
+    for f in os.listdir(path):
+        if f.startswith('part'):
+            s3.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/part" + str(index), Body=open(path + "/" + f, 'rb'))
+            index += 1
+
+
+# save the avro files
+write_avro_to_s3("sales_avro", salesAllDf)
+write_avro_to_s3("promotions_avro", promotionsDf)
+write_avro_to_s3("timeByDay_avro", timeDf)
+write_avro_to_s3("store_avro", storeDf)
