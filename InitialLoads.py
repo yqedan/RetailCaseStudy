@@ -14,8 +14,10 @@ spark = SparkSession.builder \
  .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
-s3 = boto3.client('s3')
+client = boto3.client('s3')
+resource = boto3.resource('s3')
 bucketName = "yusufqedanbucket"
+bucket = resource.Bucket(bucketName)
 
 url = "jdbc:mysql://localhost:3306/food_mart"
 driver = "com.mysql.jdbc.Driver"
@@ -26,6 +28,13 @@ salesAllTable = "food_mart.sales_fact_all"
 promotionsTable = "food_mart.promotion"
 timeByDayTable = "food_mart.time_by_day"
 storeTable = "food_mart.store"
+
+# delete old data from s3
+for obj in bucket.objects.all():
+    key = obj.key
+    keyTokens = key.split("/")
+    if keyTokens[0] == "trg":
+        obj.delete()
 
 # read in tables from mysql database
 salesAllDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAllTable, user=user, password=password).load()
@@ -42,7 +51,7 @@ lastUpdateTempFile = tempfile.NamedTemporaryFile()
 lastUpdateFile = open(lastUpdateTempFile.name, 'w')
 lastUpdateFile.write(str(lastUpdate))
 lastUpdateFile.close()
-s3.put_object(Bucket=bucketName, Key="trg/last_update", Body=open(lastUpdateTempFile.name, 'rb'))
+client.put_object(Bucket=bucketName, Key="trg/last_update", Body=open(lastUpdateTempFile.name, 'rb'))
 lastUpdateFile.close()
 
 
@@ -53,7 +62,7 @@ def write_avro_to_s3(sub_dir_name, data_frame):
     index = 0
     for f in os.listdir(path):
         if f.startswith('part'):
-            s3.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/part" + str(index), Body=open(path + "/" + f, 'rb'))
+            client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/init_part" + str(index), Body=open(path + "/" + f, 'rb'))
             index += 1
 
 
