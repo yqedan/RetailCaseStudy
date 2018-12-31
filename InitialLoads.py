@@ -42,17 +42,25 @@ promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable
 timeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=timeByDayTable, user=user, password=password).load()
 storeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=storeTable, user=user, password=password).load()
 
-# grab last update value for saving
-lastUpdate = salesAllDf.select(max("last_update").alias("last_update"))
-lastUpdate = lastUpdate.select(lastUpdate.last_update.cast(IntegerType())).collect()[0].asDict().get("last_update")
 
-# save the last update file to s3
-lastUpdateTempFile = tempfile.NamedTemporaryFile()
-lastUpdateFile = open(lastUpdateTempFile.name, 'w')
-lastUpdateFile.write(str(lastUpdate))
-lastUpdateFile.close()
-client.put_object(Bucket=bucketName, Key="trg/last_update", Body=open(lastUpdateTempFile.name, 'rb'))
-lastUpdateFile.close()
+# a function we will call for each last update file we save to s3
+def write_last_update_to_s3(sub_dir_name, data_frame):
+    # grab last update value for saving
+    last_update = data_frame.select(max("last_update").alias("last_update"))
+    last_update = last_update.select(last_update.last_update.cast(IntegerType())).collect()[0].asDict().get("last_update")
+    # save the last update file to s3
+    last_update_temp_file = tempfile.NamedTemporaryFile()
+    last_update_file = open(last_update_temp_file.name, 'w')
+    last_update_file.write(str(last_update))
+    # we have to close and reopen this file as binary
+    last_update_file.close()
+    client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/last_update", Body=open(last_update_temp_file.name, 'rb'))
+    last_update_file.close()
+
+
+# save the last update files
+write_last_update_to_s3("sales_avro", salesAllDf)
+write_last_update_to_s3("promotions_avro", promotionsDf)
 
 
 # a function we will call for each avro directory we save to s3
