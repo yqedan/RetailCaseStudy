@@ -11,11 +11,11 @@ salesDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/trg/s
 timeDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/trg/timeByDay_avro")
 storeDF = spark.read.format("com.databricks.spark.avro").load("/home/Yusuf/trg/store_avro")
 
-SaSt_DF = salesDF.join(storeDF, salesDF.store_id == storeDF.store_id)
+SaSt_DF = salesDF.join(storeDF, "store_id")
 
-STS_DF = SaSt_DF.join(timeDF, SaSt_DF.time_id == timeDF.time_id)
+STS_DF = SaSt_DF.join(timeDF, "time_id")
 
-joinedDF = promotionDF.join(STS_DF, promotionDF.promotion_id == STS_DF.promotion_id)
+joinedDF = promotionDF.join(STS_DF, "promotion_id")
 
 finalDF = joinedDF.select(promotionDF.promotion_id.cast(IntegerType()),
                           storeDF.region_id.cast(IntegerType()),
