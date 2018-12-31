@@ -11,7 +11,7 @@ alter table promotion add column last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';
 
 --modify primary key of promotion table to make it so it is always unique when we add test rows later
-alter table promotion modify promotion_id INT AUTO_INCREMENT
+alter table promotion modify promotion_id INT AUTO_INCREMENT;
 
 --add test rows to sales and promotion tables for incremental loads testing
 insert into sales_fact_all (product_id,time_id,customer_id,promotion_id,store_id,store_sales,store_cost,unit_sales) values (1,1,1,1,1,1.0,1.0,1.0);
