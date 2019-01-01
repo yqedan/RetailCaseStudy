@@ -4,9 +4,10 @@ import os
 import tempfile
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 IncrementalLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 IncrementalLoads.py
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')
@@ -44,12 +45,12 @@ spark.sparkContext.setLogLevel('WARN')
 # read in tables from mysql database
 salesAllDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAllTable, user=user, password=password).load()
 promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=promotionsTable, user=user, password=password).load()
-# select all but cast date column timestamp to integer for filter logic
-salesAllDf = salesAllDf.select("product_id", "time_id", "customer_id", "promotion_id", "store_id", "store_sales", "store_cost", "unit_sales", col("last_update").cast("integer"))
-promotionsDf = promotionsDf.select("promotion_id", "promotion_district_id", "promotion_name", "media_type", "cost", "start_date", "end_date", col("last_update").cast("integer"))
+
 
 # function to save the new rows to s3 for sales and promotions
 def save_new_rows_to_s3(sub_dir_name, data_frame, last_update):
+    # cast date last update column timestamp to integer for filter logic
+    data_frame = data_frame.withColumn("last_update", col("last_update").cast("integer"))
     # grab only newest records
     df_latest = data_frame.filter(data_frame.last_update > last_update)
     if df_latest.count() > 0:
@@ -64,6 +65,8 @@ def save_new_rows_to_s3(sub_dir_name, data_frame, last_update):
         last_update_file.close()
         client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/last_update", Body=open(last_update_temp_file.name, 'rb'))
         last_update_file.close()
+        # cast last update column integer type back to timestamp for saving
+        df_latest = df_latest.withColumn("last_update", col("last_update").cast(TimestampType()))
         # save table avro to s3
         path = os.path.join(tempfile.mkdtemp(), "sales_avro")
         df_latest.write.format("com.databricks.spark.avro").save(path)
