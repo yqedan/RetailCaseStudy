@@ -22,3 +22,9 @@ select * from sales_fact_all where(product_id = 1 and time_id = 1);
 delete from sales_fact_all where(product_id = 1 and time_id = 1);
 select * from promotion where(promotion_district_id = -1);
 delete from promotion where(promotion_district_id = -1);
+
+-- SNOWFLAKE CODE
+
+--QUERY-1
+use FOOD_MART_AGG;
+select region_id,promotion_id,COST,weekday_sales,weekend_sales from FOOD_MART_AGG.PUBLIC.SALES_AGG;
