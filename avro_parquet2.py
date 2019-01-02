@@ -44,9 +44,7 @@ def main():
         storeDF.store_id).drop(promoSalesDF.last_update_date)
 
     # matching with time by day
-    promoSalesWithStoreTimeDF = promoSalesAllWithStoreIdDF.join(timeDF,
-                                                                timeDF.time_id == promoSalesAllWithStoreIdDF.time_id).drop(
-        timeDF.time_id)
+    promoSalesWithStoreTimeDF = promoSalesAllWithStoreIdDF.join(timeDF,timeDF.time_id == promoSalesAllWithStoreIdDF.time_id).drop(timeDF.time_id)
 
     print
     salesAllDF.show()
