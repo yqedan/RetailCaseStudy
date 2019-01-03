@@ -1,23 +1,18 @@
 import sys
+import boto3
+import os
+import tempfile
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 IncrementalLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 IncrementalLoads.py
 
-# read in the file to determine the last update timestamp
-try:
-    lastUpdateFile = open("/home/Yusuf/trg/last_update", "r+")
-    lastUpdate = int(lastUpdateFile.readline())
-except IOError:
-    print("Error: can\'t find file or read data maybe run an initial load first?")
-    sys.exit()
-
-spark = SparkSession.builder \
- .master("local") \
- .appName("Incremental_Loads_For_Retail_Agg") \
- .getOrCreate()
-spark.sparkContext.setLogLevel('WARN')
+client = boto3.client('s3')
+resource = boto3.resource('s3')
+bucketName = "yusufqedanbucket"
+bucket = resource.Bucket(bucketName)
 
 url = "jdbc:mysql://localhost:3306/food_mart"
 driver = "com.mysql.jdbc.Driver"
@@ -25,23 +20,64 @@ user = "root"
 password = "root"
 
 salesAllTable = "food_mart.sales_fact_all"
+promotionsTable = "food_mart.promotion"
 
-# read in table from mysql database
+
+def get_last_update(sub_dir_name):
+    # see if we have a last update file in s3
+    for obj in bucket.objects.all():
+        key = obj.key
+        if key == "trg/" + sub_dir_name + "/last_update":
+            return int(obj.get()['Body'].read())
+    print("Error: can\'t find " + sub_dir_name + " last update file maybe run an initial load first?")
+    sys.exit()
+
+
+salesLastUpdate = get_last_update("sales_avro")
+promotionsLastUpdate = get_last_update("promotions_avro")
+
+spark = SparkSession.builder \
+ .master("local") \
+ .appName("Incremental_Loads_For_Retail_Agg") \
+ .getOrCreate()
+spark.sparkContext.setLogLevel('WARN')
+
+# read in tables from mysql database
 salesAllDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=salesAllTable, user=user, password=password).load()
-# select all but cast date column timestamp to integer for filter logic
-salesAllDf = salesAllDf.select("product_id", "time_id", "customer_id", "promotion_id", "store_id", "store_sales", "store_cost", "unit_sales", col("last_update").cast("integer"))
-# grab only newest records
-salesAllDfLatest = salesAllDf.filter(salesAllDf.last_update > lastUpdate)
-if salesAllDfLatest.count() > 0:
-    # append to directory
-    salesAllDfLatest.write.format("com.databricks.spark.avro").mode("append").save("/home/Yusuf/trg/sales_avro")
-    # grab last update value for saving
-    lastUpdate = salesAllDfLatest.select(max("last_update").alias("last_update"))
-    lastUpdate = lastUpdate.select(lastUpdate.last_update).collect()[0].asDict().get("last_update")
-    # update file and close it if there was any new data
-    lastUpdateFile.seek(0)
-    lastUpdateFile.write(str(lastUpdate))
-else:
-    print("No new rows found...Aborting save!")
-# always close the file!
-lastUpdateFile.close()
+promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=promotionsTable, user=user, password=password).load()
+
+
+# function to save the new rows to s3 for sales and promotions
+def save_new_rows_to_s3(sub_dir_name, data_frame, last_update):
+    # cast date last update column timestamp to integer for filter logic
+    data_frame = data_frame.withColumn("last_update", col("last_update").cast("integer"))
+    # grab only newest records
+    df_latest = data_frame.filter(data_frame.last_update > last_update)
+    if df_latest.count() > 0:
+        # grab the new last update value for saving
+        last_update_new_row = df_latest.select(max("last_update").alias("last_update"))
+        last_update_new = last_update_new_row.select(last_update_new_row.last_update).collect()[0].asDict().get("last_update")
+        # save the new last update file to s3
+        last_update_temp_file = tempfile.NamedTemporaryFile()
+        last_update_file = open(last_update_temp_file.name, 'w')
+        last_update_file.write(str(last_update_new))
+        # we have to close and reopen this file as binary
+        last_update_file.close()
+        client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/last_update", Body=open(last_update_temp_file.name, 'rb'))
+        last_update_file.close()
+        # cast last update column integer type back to timestamp for saving
+        df_latest = df_latest.withColumn("last_update", col("last_update").cast(TimestampType()))
+        # save table avro to s3
+        path = os.path.join(tempfile.mkdtemp(), "sales_avro")
+        df_latest.write.format("com.databricks.spark.avro").save(path)
+        index = 0
+        for f in os.listdir(path):
+            if f.startswith('part'):
+                client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/update_" + str(last_update_new) + "_part" + str(index), Body=open(path + "/" + f, 'rb'))
+                index += 1
+    else:
+        print("No new rows found...Aborting save for " + sub_dir_name)
+
+
+save_new_rows_to_s3("sales_avro", salesAllDf, salesLastUpdate)
+save_new_rows_to_s3("promotions_avro", promotionsDf, promotionsLastUpdate)

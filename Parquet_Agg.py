@@ -1,14 +1,34 @@
+import boto3
+import os
+import tempfile
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 AVRO_Parquet.py
+# spark-submit Parquet_Agg.py
 
-spark = SparkSession.builder.getOrCreate()
+spark = SparkSession.builder \
+ .master("local") \
+ .appName("Parquet_Aggregation") \
+ .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
-# read the parquet
-df = spark.read.load("/home/Yusuf/trg/joined_parquet")
+client = boto3.client('s3')
+resource = boto3.resource('s3')
+bucketName = "yusufqedanbucket"
+bucket = resource.Bucket(bucketName)
+
+
+def read_parquet_from_s3():
+    for obj in bucket.objects.all():
+        if obj.key == "trg/joined_parquet":
+            file = tempfile.NamedTemporaryFile(delete=False)
+            file.write(obj.get()['Body'].read())
+            file.close()
+            return spark.read.load(file.name)
+
+
+df = read_parquet_from_s3()
 
 # split weekday and weekend records into 2 tables for aggregation
 dfWeekdays = df.filter((col("the_day") == "Monday") | (col("the_day") == "Tuesday") | (col("the_day") == "Wednesday") | (col("the_day") == "Thursday") | (col("the_day") == "Friday"))
@@ -27,7 +47,12 @@ groupedDfWeekends = groupedDfWeekends.select("region_id", "promotion_id", "the_y
 unionDf = groupedDfWeekdays.union(groupedDfWeekends)
 
 # regroup the duplicate keys where store sales happened on both weekdays and weekends
-finalDF = unionDf.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("weekday_sales").alias("weekday_sales"),sum("weekend_sales").alias("weekend_sales"))
+finalDF = unionDf.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("weekday_sales").alias("weekday_sales"), sum("weekend_sales").alias("weekend_sales"))
 
-# save your hard work!
-finalDF.repartition(1).write.format("csv").mode("overwrite").save("/home/Yusuf/trg/final_csv")
+# save new csv to temp directory
+path = os.path.join(tempfile.mkdtemp(), "final_csv")
+finalDF.repartition(1).write.format("csv").save(path)
+
+# select and save just the csv file to s3 which is always the 3rd position in the directory
+parquet_file = os.listdir(path)[3]
+client.put_object(Bucket=bucketName, Key="trg/final_csv", Body=open(path + "/" + parquet_file, 'rb'))
