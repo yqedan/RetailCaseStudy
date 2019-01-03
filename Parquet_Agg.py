@@ -15,7 +15,7 @@ spark.sparkContext.setLogLevel('WARN')
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+bucketName = "bhuvabucket"
 bucket = resource.Bucket(bucketName)
 
 

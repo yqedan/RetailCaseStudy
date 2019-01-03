@@ -11,7 +11,7 @@ from pyspark.sql.types import *
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+bucketName = "bhuvabucket"
 bucket = resource.Bucket(bucketName)
 
 url = "jdbc:mysql://localhost:3306/food_mart"

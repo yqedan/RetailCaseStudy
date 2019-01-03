@@ -2,16 +2,19 @@ import snowflake.connector
 import boto3
 from boto3 import Session
 
+# Run script by using:
+#python3 save_csv_to_snowflake.py
+
 client = boto3.client('s3')
 resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+bucketName = "bhuvabucket"
 bucket = resource.Bucket(bucketName)
 aws_credentials = Session().get_credentials().get_frozen_credentials()
 
 
 def read_snowflake_credentials_from_s3():
     for obj in bucket.objects.all():
-        if obj.key == "trg/snowflake_credentials":
+        if obj.key == "snowflake_credentials":
             out = str(obj.get()['Body'].read())[2:-3].split(',')
             return out
 
