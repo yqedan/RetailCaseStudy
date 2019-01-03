@@ -4,7 +4,7 @@ from boto3 import Session
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+bucketName = "baronejake"
 bucket = resource.Bucket(bucketName)
 aws_credentials = Session().get_credentials().get_frozen_credentials()
 

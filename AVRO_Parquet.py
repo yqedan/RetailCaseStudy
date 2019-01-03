@@ -9,7 +9,7 @@ from pyspark.sql.types import *
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+bucketName = "baronejake"
 bucket = resource.Bucket(bucketName)
 
 spark = SparkSession.builder \
