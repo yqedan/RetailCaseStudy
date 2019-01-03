@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0 AVRO_Parquet.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Jake\ Barone/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py
 
 client = boto3.client('s3')
 resource = boto3.resource('s3')

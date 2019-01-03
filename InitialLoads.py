@@ -6,7 +6,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 InitialLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Jake\ Barone/PycharmProjects/RetailCaseStudy/InitialLoads.py
 
 spark = SparkSession.builder \
  .master("local") \
