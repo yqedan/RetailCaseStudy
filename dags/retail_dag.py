@@ -32,20 +32,26 @@ dag = DAG(
 )
 
 t1 = BashOperator(
-    task_id='initial_load',
-    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    task_id='incremental_load',
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/IncrementalLoads.py ",
     dag=dag
 )
 
 t2 = BashOperator(
     task_id='avro_parquet',
-    bash_command= "spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    bash_command="spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
     dag=dag
 )
 
 t3 = BashOperator(
     task_id='parquet_agg',
-    bash_command= "spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
+    bash_command="spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
+    dag=dag
+)
+
+t4 = BashOperator(
+    task_id='initial_load',
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
     dag=dag
 )
 

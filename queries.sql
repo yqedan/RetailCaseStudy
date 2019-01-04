@@ -23,10 +23,10 @@ delete from sales_fact_all where(product_id = 1 and time_id = 1);
 select * from promotion where(promotion_district_id = -1);
 delete from promotion where(promotion_district_id = -1);
 
--- SNOWFLAKE CODE
+--snowflake queries
 
---QUERY-1
+--query 1
 use FOOD_MART_AGG;
-select region_id,promotion_id,COST,weekday_sales,weekend_sales from FOOD_MART_AGG.PUBLIC.SALES_AGG;
---QUERY.2
-SELECT region_id,promotion_id,cost, max(weekday_sales),max(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG GROUP BY region_id,promotion_id,cost;
+select region_id, promotion_id, cost, sum(weekday_sales), sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id;
+--query 2
+select region_id, promotion_id, cost, max(weekday_sales + weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by region_id, promotion_id;
