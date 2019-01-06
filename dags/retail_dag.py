@@ -1,8 +1,10 @@
 import airflow
+import boto3
 
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import ShortCircuitOperator
 from airflow.utils.trigger_rule import TriggerRule
 from datetime import timedelta
 
@@ -19,6 +21,10 @@ from datetime import timedelta
 # To get these airflow libraries for pycharm run this in windows shell
 # pip install apache-airflow --no-deps
 
+resource = boto3.resource('s3')
+bucketName = "yusufqedanbucket"
+bucket = resource.Bucket(bucketName)
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -32,7 +38,7 @@ dag = DAG(
     schedule_interval=timedelta(days=1)
 )
 
-t1 = DummyOperator(
+start = DummyOperator(
     task_id='start',
     dag=dag
 )
@@ -63,7 +69,30 @@ init = BashOperator(
     dag=dag
 )
 
-t1 >> inc
-inc >> av_par
+
+def any_new_rows():
+    for obj in bucket.objects.all():
+        key = obj.key
+        if key == "trg/new_data":
+            return True
+    return False
+
+
+any_new_rows_task = ShortCircuitOperator(
+    task_id='any_new_rows',
+    python_callable=any_new_rows,
+    dag=dag
+)
+
+finish = DummyOperator(
+    task_id="finish",
+    dag=dag
+)
+
+start >> inc
+inc >> init
 init >> av_par
+inc >> any_new_rows_task
+any_new_rows_task >> av_par
 av_par >> par_agg
+par_agg >> finish
