@@ -68,7 +68,7 @@ def save_new_rows_to_s3(sub_dir_name, data_frame, last_update):
         # cast last update column integer type back to timestamp for saving
         df_latest = df_latest.withColumn("last_update", col("last_update").cast(TimestampType()))
         # save table avro to s3
-        path = os.path.join(tempfile.mkdtemp(), "sales_avro")
+        path = os.path.join(tempfile.mkdtemp(), "temp_avro")
         df_latest.write.format("avro").save(path)
         index = 0
         for f in os.listdir(path):

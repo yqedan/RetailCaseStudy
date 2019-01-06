@@ -1,8 +1,9 @@
 import airflow
 
 from airflow.models import DAG
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.contrib.operators.dataproc_operator import DataProcPySparkOperator
+from airflow.utils.trigger_rule import TriggerRule
 from datetime import timedelta
 
 # To run entire dag:
@@ -31,28 +32,38 @@ dag = DAG(
     schedule_interval=timedelta(days=1)
 )
 
-t1 = BashOperator(
+t1 = DummyOperator(
+    task_id='start',
+    dag=dag
+)
+
+inc = BashOperator(
     task_id='incremental_load',
     bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/IncrementalLoads.py ",
     dag=dag
 )
 
-t2 = BashOperator(
+av_par = BashOperator(
     task_id='avro_parquet',
     bash_command="spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
 
-t3 = BashOperator(
+par_agg = BashOperator(
     task_id='parquet_agg',
     bash_command="spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
     dag=dag
 )
 
-t4 = BashOperator(
+init = BashOperator(
     task_id='initial_load',
     bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    trigger_rule=TriggerRule.ONE_FAILED,
     dag=dag
 )
 
-t1 >> t2 >> t3
+t1 >> inc
+inc >> av_par
+init >> av_par
+av_par >> par_agg

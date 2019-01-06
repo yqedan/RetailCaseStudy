@@ -27,6 +27,7 @@ delete from promotion where(promotion_district_id = -1);
 
 --query 1
 use FOOD_MART_AGG;
-select region_id, promotion_id, cost, sum(weekday_sales), sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id;
+select promotion_id, cost, sum(weekday_sales), sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id, cost;
 --query 2
-select region_id, promotion_id, cost, max(weekday_sales + weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by region_id, promotion_id;
+use FOOD_MART_AGG;
+select region_id, promotion_id, cost, max(weekday_sales + weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by region_id, promotion_id, cost;
