@@ -8,15 +8,9 @@ bucketName = "yusufqedanbucket"
 bucket = resource.Bucket(bucketName)
 aws_credentials = Session().get_credentials().get_frozen_credentials()
 
-
-def read_snowflake_credentials_from_s3():
-    for obj in bucket.objects.all():
-        if obj.key == "trg/snowflake_credentials":
-            out = str(obj.get()['Body'].read())[2:-3].split(',')
-            return out
-
-
-output = read_snowflake_credentials_from_s3()
+file = open("/home/Yusuf/.snowflake_credentials", "r")
+line = file.readline()[:-1]
+output = line.split(',')
 
 con = snowflake.connector.connect(
     user=output[0],

@@ -23,9 +23,9 @@ delete from sales_fact_all where(product_id = 1 and time_id = 1);
 select * from promotion where(promotion_district_id = -1);
 delete from promotion where(promotion_district_id = -1);
 
---Snowflake
-"FOOD_MART_AGG"use FOOD_MART_AGG;
---Query1: List the total weekday sales & weekend sales for each promotions:
-select region_id,promotion_id,cost,sum(weekday_sales),sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id,region_id,cost;
+--Snowflake Queries
+use FOOD_MART_AGG;
+--Query 1: List the total weekday sales & weekend sales for each promotions:
+select region_id, promotion_id, cost, sum(weekday_sales), sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id,region_id,cost;
 --Query 2: List promotions, which generated highest total sales (weekday + weekend) in each region.
-SELECT region_id,promotion_id,cost, max(weekday_sales+weekend_sales) as HighestTotalSales from FOOD_MART_AGG.PUBLIC.SALES_AGG GROUP BY region_id,promotion_id,cost
+select region_id, promotion_id, cost, max(weekday_sales + weekend_sales) as highest_total_sales from FOOD_MART_AGG.PUBLIC.SALES_AGG group by region_id,promotion_id,cost

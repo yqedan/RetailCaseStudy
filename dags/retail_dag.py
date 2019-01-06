@@ -1,8 +1,11 @@
 import airflow
+import boto3
 
 from airflow.models import DAG
+from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.contrib.operators.dataproc_operator import DataProcPySparkOperator
+from airflow.operators.python_operator import ShortCircuitOperator
+from airflow.utils.trigger_rule import TriggerRule
 from datetime import timedelta
 
 # To run entire dag:
@@ -18,6 +21,10 @@ from datetime import timedelta
 # To get these airflow libraries for pycharm run this in windows shell
 # pip install apache-airflow --no-deps
 
+resource = boto3.resource('s3')
+bucketName = "yusufqedanbucket"
+bucket = resource.Bucket(bucketName)
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -31,22 +38,61 @@ dag = DAG(
     schedule_interval=timedelta(days=1)
 )
 
-t1 = BashOperator(
-    task_id='initial_load',
-    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+start = DummyOperator(
+    task_id='start',
     dag=dag
 )
 
-t2 = BashOperator(
+inc = BashOperator(
+    task_id='incremental_load',
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/IncrementalLoads.py ",
+    dag=dag
+)
+
+av_par = BashOperator(
     task_id='avro_parquet',
-    bash_command= "spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    bash_command="spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
 
-t3 = BashOperator(
+par_agg = BashOperator(
     task_id='parquet_agg',
-    bash_command= "spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
+    bash_command="spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
     dag=dag
 )
 
-t1 >> t2 >> t3
+init = BashOperator(
+    task_id='initial_load',
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    trigger_rule=TriggerRule.ONE_FAILED,
+    dag=dag
+)
+
+
+def any_new_rows():
+    for obj in bucket.objects.all():
+        key = obj.key
+        if key == "trg/new_data":
+            return True
+    return False
+
+
+any_new_rows_task = ShortCircuitOperator(
+    task_id='any_new_rows',
+    python_callable=any_new_rows,
+    dag=dag
+)
+
+finish = DummyOperator(
+    task_id="finish",
+    dag=dag
+)
+
+start >> inc
+inc >> init
+init >> av_par
+inc >> any_new_rows_task
+any_new_rows_task >> av_par
+av_par >> par_agg
+par_agg >> finish

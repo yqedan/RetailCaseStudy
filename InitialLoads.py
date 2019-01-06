@@ -66,7 +66,7 @@ write_last_update_to_s3("promotions_avro", promotionsDf)
 # a function we will call for each avro directory we save to s3
 def write_avro_to_s3(sub_dir_name, data_frame):
     path = os.path.join(tempfile.mkdtemp(), sub_dir_name)
-    data_frame.write.format("com.databricks.spark.avro").save(path)
+    data_frame.write.format("avro").save(path)
     index = 0
     for f in os.listdir(path):
         if f.startswith('part'):

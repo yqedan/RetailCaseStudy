@@ -23,6 +23,14 @@ salesAllTable = "food_mart.sales_fact_all"
 promotionsTable = "food_mart.promotion"
 
 
+def delete_new_data_flag():
+    # delete new_data file flag so we can determine later if we got new rows or not
+    for obj in bucket.objects.all():
+        key = obj.key
+        if key == "trg/new_data":
+            obj.delete()
+
+
 def get_last_update(sub_dir_name):
     # see if we have a last update file in s3
     for obj in bucket.objects.all():
@@ -30,9 +38,10 @@ def get_last_update(sub_dir_name):
         if key == "trg/" + sub_dir_name + "/last_update":
             return int(obj.get()['Body'].read())
     print("Error: can\'t find " + sub_dir_name + " last update file maybe run an initial load first?")
-    sys.exit()
+    sys.exit(1)
 
 
+delete_new_data_flag()
 salesLastUpdate = get_last_update("sales_avro")
 promotionsLastUpdate = get_last_update("promotions_avro")
 
@@ -68,16 +77,22 @@ def save_new_rows_to_s3(sub_dir_name, data_frame, last_update):
         # cast last update column integer type back to timestamp for saving
         df_latest = df_latest.withColumn("last_update", col("last_update").cast(TimestampType()))
         # save table avro to s3
-        path = os.path.join(tempfile.mkdtemp(), "sales_avro")
-        df_latest.write.format("com.databricks.spark.avro").save(path)
+        path = os.path.join(tempfile.mkdtemp(), "temp_avro")
+        df_latest.write.format("avro").save(path)
         index = 0
         for f in os.listdir(path):
             if f.startswith('part'):
                 client.put_object(Bucket=bucketName, Key="trg/" + sub_dir_name + "/update_" + str(last_update_new) + "_part" + str(index), Body=open(path + "/" + f, 'rb'))
                 index += 1
+        return True
     else:
-        print("No new rows found...Aborting save for " + sub_dir_name)
+        return False
 
 
-save_new_rows_to_s3("sales_avro", salesAllDf, salesLastUpdate)
-save_new_rows_to_s3("promotions_avro", promotionsDf, promotionsLastUpdate)
+new_sales_rows = save_new_rows_to_s3("sales_avro", salesAllDf, salesLastUpdate)
+new_promotions_rows = save_new_rows_to_s3("promotions_avro", promotionsDf, promotionsLastUpdate)
+
+# new data flag file is used for short circuit operator to decide if any joins or aggregation needs to be done
+if new_promotions_rows or new_sales_rows:
+    client.put_object(Bucket=bucketName, Key="trg/new_data", Body="")
+

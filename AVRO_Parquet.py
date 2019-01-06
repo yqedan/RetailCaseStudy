@@ -28,7 +28,7 @@ def get_avro_from_s3(sub_dir_name):
             file = tempfile.NamedTemporaryFile(delete=False)
             file.write(obj.get()['Body'].read())
             file.close()
-            df_new = spark.read.format("com.databricks.spark.avro").load(file.name)
+            df_new = spark.read.format("avro").load(file.name)
             if df is None:
                 df = df_new
             else:
