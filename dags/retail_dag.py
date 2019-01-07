@@ -35,7 +35,9 @@ dag = DAG(
     'retail_dag',
     default_args=default_args,
     description='A simple retail DAG',
-    schedule_interval=timedelta(days=1)
+    schedule_interval=timedelta(minutes=5),
+    max_active_runs=1,
+    catchup=False
 )
 
 start = DummyOperator(
@@ -81,6 +83,7 @@ def any_new_rows():
 any_new_rows_task = ShortCircuitOperator(
     task_id='any_new_rows',
     python_callable=any_new_rows,
+    trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
 
