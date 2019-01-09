@@ -87,6 +87,12 @@ any_new_rows_task = ShortCircuitOperator(
     dag=dag
 )
 
+csv_snowflake = BashOperator(
+    task_id="csv_snowflake",
+    bash_command="python3 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/save_csv_to_snowflake.py ",
+    dag=dag
+)
+
 finish = DummyOperator(
     task_id="finish",
     dag=dag
@@ -98,4 +104,5 @@ init >> av_par
 inc >> any_new_rows_task
 any_new_rows_task >> av_par
 av_par >> par_agg
-par_agg >> finish
+par_agg >> csv_snowflake
+csv_snowflake >> finish
