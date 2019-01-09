@@ -28,4 +28,11 @@ delete from promotion where(promotion_district_id = -1);
 --Query1: List the total weekday sales & weekend sales for each promotions:
 select region_id,promotion_id,cost,sum(weekday_sales),sum(weekend_sales) from FOOD_MART_AGG.PUBLIC.SALES_AGG group by promotion_id,region_id,cost;
 --Query 2: List promotions, which generated highest total sales (weekday + weekend) in each region.
-SELECT region_id,promotion_id,cost, max(weekday_sales+weekend_sales) as HighestTotalSales from FOOD_MART_AGG.PUBLIC.SALES_AGG GROUP BY region_id,promotion_id,cost
+-- Output is not exact because grouping is dne by region, promotion and cost
+--SELECT region_id,promotion_id,cost, max(weekday_sales+weekend_sales) as HighestTotalSales from FOOD_MART_AGG.PUBLIC.SALES_AGG GROUP BY region_id,promotion_id,cost
+
+SELECT AGG_PARENT.region_id,AGG_PARENT.promotion_id, (AGG_PARENT.weekday_sales+AGG_PARENT.weekend_sales) as highest_sales
+from FOOD_MART_AGG.PUBLIC.SALES_AGG AGG_PARENT
+inner join
+(Select region_id, max(weekday_sales+weekend_sales) as max_sales from FOOD_MART_AGG.PUBLIC.SALES_AGG group by region_id) as AGG_CHILD
+WHERE AGG_PARENT.region_id = AGG_CHILD.region_id and (AGG_PARENT.weekday_sales+AGG_PARENT.weekend_sales) = AGG_CHILD.max_sales
