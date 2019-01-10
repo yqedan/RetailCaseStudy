@@ -35,7 +35,7 @@ dag = DAG(
     'retail_dag',
     default_args=default_args,
     description='A simple retail DAG',
-    schedule_interval=timedelta(minutes=5),
+    schedule_interval=timedelta(minutes=1),
     max_active_runs=1,
     catchup=False
 )

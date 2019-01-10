@@ -32,7 +32,7 @@ def get_avro_from_s3(sub_dir_name):
             if df is None:
                 df = df_new
             else:
-                df.union(df_new)
+                df = df.union(df_new)
     return df
 
 
