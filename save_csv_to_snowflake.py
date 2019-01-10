@@ -20,6 +20,8 @@ con = snowflake.connector.connect(
 
 con.cursor().execute("USE FOOD_MART_AGG")
 
+con.cursor().execute("TRUNCATE TABLE FOOD_MART_AGG.PUBLIC.SALES_AGG")
+
 con.cursor().execute("""
 COPY INTO sales_agg FROM s3://""" + bucketName + "/trg/final_csv" """
     CREDENTIALS = (
