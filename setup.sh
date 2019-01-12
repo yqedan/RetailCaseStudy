@@ -6,6 +6,7 @@ sudo apt-get install -y default-jdk
 
 # python 2.7 and pip (optional but you will need to use pip3 for airflow install if you skip)
 sudo apt install -y python2.7
+sudo apt install -y python-pip
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python
 
 # spark install
@@ -19,7 +20,7 @@ sudo mv spark /usr/lib
 cp ~/.bashrc ~/.oldbashrc
 echo 'export JAVA_HOME=/usr/lib/jvm/default-java
 export SPARK_HOME=/usr/lib/spark
-export PATH=$PATH:$JAVA_HOME/bin
+export PATH=$PATH:$JAVA_HOME:$SPARK_HOME/bin
 export PYSPARK_PYTHON=python3' >> ~/.bashrc
 . ~/.bashrc
 
@@ -27,7 +28,7 @@ export PYSPARK_PYTHON=python3' >> ~/.bashrc
 sudo apt-get install -y mysql-server
 sudo service mysql start
 sudo mysql << EOF
-ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by '$pw';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by 'root';
 flush privileges;
 EOF
 mysql -u root -proot << EOF
@@ -68,9 +69,10 @@ pip install boto3
 sudo ~/.local/bin/pip install --upgrade snowflake-connector-python
 
 # python 3 installs (airflow works across python 2 or 3 but not boto3 or snowflake connector)
+sudo apt install python3-pip
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
 pip3 install boto3
 sudo pip3 install --upgrade keyrings.alt
 sudo pip3 install --upgrade snowflake-connector-python
 
-echo '\n\n\nInstallation Complete\n\n\n'
+printf '\n\n\nInstallation Complete\n\n\n'
