@@ -1,17 +1,17 @@
 # Retail Case Study
 
-#### Objectives:
+### Objectives:
 
-##### In this project, we will be migrating the existing Retail project to use the New Architecture using Spark, Airflow and Kafka.
+#### In this project, we will be migrating an existing Retail Case Study project to use a New Architecture using Pyspark, Apache Airflow and Snowflake.
 
 ### Setup:
 
  * Enable Windows Subsystem for Linux in Windows Features
  * Install Ubuntu 18.04 LTS in Microsoft Store
- * Clone repo and copy setup.sh to home directory and execute
- * You will need root access so enter your password and let installation run
+ * Clone repo and copy setup.sh to home directory and execute NOTE (You will need root access so enter your password after executing and let installation run)
+ * Execute setup_tables.sh to alter food_mart table
  * You will need to configure your S3 bucket and setup boto3 credentials [instructions here](https://github.com/boto/boto3)
- * Fix the scripts to run by changing the bucket name to yours
+ * Fix the scripts to run by changing the bucket name to yours in 5 files (will try to make this easier later but for now update InitialLoads.py, IncrementalLoads.py, AVRO_Parquet.py and Parquet_Agg.py, save_csv_to_snowflake.py and change the bucketName variable.)
 
 ### Assignment:
 
