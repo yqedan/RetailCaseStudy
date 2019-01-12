@@ -7,7 +7,7 @@ sudo apt-get install -y default-jdk
 # python 2.7 and pip (optional but you will need to use pip3 for airflow install if you skip)
 sudo apt install -y python2.7
 sudo apt install -y python-pip
-sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python
+pip install --upgrade pip
 
 # spark install
 wget http://ftp.wayne.edu/apache/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
@@ -38,6 +38,7 @@ wget http://pentaho.dlpage.phi-integration.com/mondrian/mysql-foodmart-database/
 tar -xvf foodmart_mysql.tar.gz
 rm foodmart_mysql.tar.gz
 mysql -u root -proot food_mart < foodmart_mysql.sql
+rm foodmart_mysql.sql
 
 # postgres (for airflow db usage)
 sudo apt-get install -y postgresql postgresql-contrib
@@ -50,14 +51,14 @@ sudo apt-get install -y libmysqlclient-dev
 sudo apt-get install -y libssl-dev
 sudo apt-get install -y libkrb5-dev
 sudo apt-get install -y libsasl2-dev
-sudo AIRFLOW_GPL_UNIDECODE=yes pip install apache-airflow
+sudo AIRFLOW_GPL_UNIDECODE=yes ~/.local/bin/pip install apache-airflow
 pip install psycopg2-binary
 
 # update airflow config to use postgres instead of sqlite
 airflow initdb
 cp ~/airflow/airflow.cfg ~/airflow/oldairflow.cfg
-sed -i 's?sql_alchemy_conn = sqlite:////home/'$USER'/airflow/airflow.db?sql_alchemy_conn = postgresql+psycopg2://airflow:airflow@localhost:5432/airflow?' airflow/airflow.cfg
-sed -i 's/executor = SequentialExecutor/executor = LocalExecutor/' airflow/airflow.cfg
+sudo sed -i 's?sql_alchemy_conn = sqlite:////home/'$USER'/airflow/airflow.db?sql_alchemy_conn = postgresql+psycopg2://airflow:airflow@localhost:5432/airflow?' airflow/airflow.cfg
+sudo sed -i 's/executor = SequentialExecutor/executor = LocalExecutor/' airflow/airflow.cfg
 rm airflow/airflow.db
 airflow initdb
 
@@ -65,11 +66,12 @@ airflow initdb
 sudo apt-get install -y libssl-dev libffi-dev
 
 # python 2.7 installs
+sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python
 pip install boto3
-sudo ~/.local/bin/pip install --upgrade snowflake-connector-python
+sudo pip install --upgrade snowflake-connector-python
 
 # python 3 installs (airflow works across python 2 or 3 but not boto3 or snowflake connector)
-sudo apt install python3-pip
+sudo apt install -y python3-pip
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
 pip3 install boto3
 sudo pip3 install --upgrade keyrings.alt
