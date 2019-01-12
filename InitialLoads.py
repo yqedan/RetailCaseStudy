@@ -27,14 +27,14 @@ promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable
 timeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=timeByDayTable, user=user, password=password).load()
 storeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=storeTable, user=user, password=password).load()
 # save to new directories
-salesAllDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/sales_avro")
-promotionsDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/promotions_avro")
-timeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/timeByDay_avro")
-storeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/store_avro")
+salesAllDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/yusuf/trg/sales_avro")
+promotionsDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/yusuf/trg/promotions_avro")
+timeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/yusuf/trg/timeByDay_avro")
+storeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/yusuf/trg/store_avro")
 # grab last update value for saving
 lastUpdate = salesAllDf.select(max("last_update").alias("last_update"))
 lastUpdate = lastUpdate.select(lastUpdate.last_update.cast(IntegerType())).collect()[0].asDict().get("last_update")
 # save the new file with value
-lastUpdateFile = open("/home/Yusuf/trg/last_update", "w")
+lastUpdateFile = open("/home/yusuf/trg/last_update", "w")
 lastUpdateFile.seek(0)
 lastUpdateFile.write(str(lastUpdate))
