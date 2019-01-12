@@ -2,13 +2,13 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 AVRO_Parquet.py
+# spark-submit Parquet_Agg.py
 
 spark = SparkSession.builder.getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
 # read the parquet
-df = spark.read.load("/home/Yusuf/trg/joined_parquet")
+df = spark.read.load("/home/yusuf/trg/joined_parquet")
 
 # split weekday and weekend records into 2 tables for aggregation
 dfWeekdays = df.filter((col("the_day") == "Monday") | (col("the_day") == "Tuesday") | (col("the_day") == "Wednesday") | (col("the_day") == "Thursday") | (col("the_day") == "Friday"))
@@ -30,4 +30,4 @@ unionDf = groupedDfWeekdays.union(groupedDfWeekends)
 finalDF = unionDf.groupBy("region_id", "promotion_id", "the_year", "the_month").agg(first("cost"), sum("weekday_sales").alias("weekday_sales"),sum("weekend_sales").alias("weekend_sales"))
 
 # save your hard work!
-finalDF.repartition(1).write.format("csv").mode("overwrite").save("/home/Yusuf/trg/final_csv")
+finalDF.repartition(1).write.format("csv").mode("overwrite").save("/home/yusuf/trg/final_csv")

@@ -3,11 +3,11 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 IncrementalLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 IncrementalLoads.py
 
 # read in the file to determine the last update timestamp
 try:
-    lastUpdateFile = open("/home/Yusuf/trg/last_update", "r+")
+    lastUpdateFile = open("/home/yusuf/trg/last_update", "r+")
     lastUpdate = int(lastUpdateFile.readline())
 except IOError:
     print("Error: can\'t find file or read data maybe run an initial load first?")
@@ -34,7 +34,7 @@ salesAllDf = salesAllDf.select("product_id", "time_id", "customer_id", "promotio
 salesAllDfLatest = salesAllDf.filter(salesAllDf.last_update > lastUpdate)
 if salesAllDfLatest.count() > 0:
     # append to directory
-    salesAllDfLatest.write.format("com.databricks.spark.avro").mode("append").save("/home/Yusuf/trg/sales_avro")
+    salesAllDfLatest.write.format("com.databricks.spark.avro").mode("append").save("/home/yusuf/trg/sales_avro")
     # grab last update value for saving
     lastUpdate = salesAllDfLatest.select(max("last_update").alias("last_update"))
     lastUpdate = lastUpdate.select(lastUpdate.last_update).collect()[0].asDict().get("last_update")
