@@ -3,7 +3,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
 # Run script by using:
-# spark-submit --packages mysql:mysql-connector-java:5.1.38,com.databricks:spark-avro_2.11:4.0.0 InitialLoads.py
+# spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 InitialLoads.py
 
 spark = SparkSession.builder \
  .master("local") \
@@ -27,10 +27,10 @@ promotionsDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable
 timeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=timeByDayTable, user=user, password=password).load()
 storeDf = spark.read.format("jdbc").options(url=url, driver=driver, dbtable=storeTable, user=user, password=password).load()
 # save to new directories
-salesAllDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/sales_avro")
-promotionsDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/promotions_avro")
-timeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/timeByDay_avro")
-storeDf.write.format("com.databricks.spark.avro").mode("overwrite").save("/home/Yusuf/trg/store_avro")
+salesAllDf.write.format("avro").mode("overwrite").save("/home/Yusuf/trg/sales_avro")
+promotionsDf.write.format("avro").mode("overwrite").save("/home/Yusuf/trg/promotions_avro")
+timeDf.write.format("avro").mode("overwrite").save("/home/Yusuf/trg/timeByDay_avro")
+storeDf.write.format("avro").mode("overwrite").save("/home/Yusuf/trg/store_avro")
 # grab last update value for saving
 lastUpdate = salesAllDf.select(max("last_update").alias("last_update"))
 lastUpdate = lastUpdate.select(lastUpdate.last_update.cast(IntegerType())).collect()[0].asDict().get("last_update")

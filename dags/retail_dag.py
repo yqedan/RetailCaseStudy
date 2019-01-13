@@ -2,7 +2,6 @@ import airflow
 
 from airflow.models import DAG
 from airflow.operators.bash_operator import BashOperator
-from airflow.contrib.operators.dataproc_operator import DataProcPySparkOperator
 from datetime import timedelta
 
 # To run entire dag:
