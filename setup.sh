@@ -1,13 +1,17 @@
 #!/bin/bash
 
-# install java (takes a long time so get it out of the way first!)
+# update apt
 sudo apt-get update
+
+# install java
 sudo apt-get install -y default-jdk
 
-# python 2.7 and pip (optional but you will need to use pip3 for airflow install if you skip)
-sudo apt install -y python2.7
-sudo apt install -y python-pip
-pip install --upgrade pip
+# python 3 installs
+sudo apt install -y python3-pip
+sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
+sudo pip install boto3
+sudo pip install --upgrade keyrings.alt
+sudo pip install --upgrade snowflake-connector-python
 
 # spark install
 wget http://ftp.wayne.edu/apache/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
@@ -16,11 +20,10 @@ rm spark-2.4.0-bin-hadoop2.7.tgz
 mv spark-2.4.0-bin-hadoop2.7 spark
 sudo mv spark /usr/lib
 
-# edit the .bashrc (dont set the env for PYSPARK_PYTHON if you are going to run pyspark with python 2.7)
+# edit the bashrc file (adds some env variables and edits path)
 cp ~/.bashrc ~/.oldbashrc
-echo 'export JAVA_HOME=/usr/lib/jvm/default-java
-export SPARK_HOME=/usr/lib/spark
-export PATH=$PATH:$JAVA_HOME:$SPARK_HOME/bin
+echo 'export SPARK_HOME=/usr/lib/spark
+export PATH=$PATH:$SPARK_HOME/bin
 export PYSPARK_PYTHON=python3' >> ~/.bashrc
 . ~/.bashrc
 
@@ -47,34 +50,14 @@ sudo -u postgres psql -c "CREATE USER airflow WITH PASSWORD 'airflow';"
 sudo -u postgres createdb airflow
 
 # airflow
-sudo apt-get install -y libmysqlclient-dev
-sudo apt-get install -y libssl-dev
-sudo apt-get install -y libkrb5-dev
-sudo apt-get install -y libsasl2-dev
-sudo AIRFLOW_GPL_UNIDECODE=yes ~/.local/bin/pip install apache-airflow
-pip install psycopg2-binary
+sudo AIRFLOW_GPL_UNIDECODE=yes pip install apache-airflow[postgres]
 
 # update airflow config to use postgres instead of sqlite
-airflow initdb
+airflow initdb # creates the file structure and config file
 cp ~/airflow/airflow.cfg ~/airflow/oldairflow.cfg
-sudo sed -i 's?sql_alchemy_conn = sqlite:////home/'$USER'/airflow/airflow.db?sql_alchemy_conn = postgresql+psycopg2://airflow:airflow@localhost:5432/airflow?' airflow/airflow.cfg
-sudo sed -i 's/executor = SequentialExecutor/executor = LocalExecutor/' airflow/airflow.cfg
-rm airflow/airflow.db
+sed -i 's?sql_alchemy_conn = sqlite:////home/'$USER'/airflow/airflow.db?sql_alchemy_conn = postgresql+psycopg2://airflow:airflow@localhost:5432/airflow?' ~/airflow/airflow.cfg
+sed -i 's/executor = SequentialExecutor/executor = LocalExecutor/' ~/airflow/airflow.cfg
+rm ~/airflow/airflow.db
 airflow initdb
 
-# needed for the foolowing python 2 or 3 installs (snowflake connector)
-sudo apt-get install -y libssl-dev libffi-dev
-
-# python 2.7 installs
-sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python
-pip install boto3
-sudo pip install --upgrade snowflake-connector-python
-
-# python 3 installs (airflow works across python 2 or 3 but not boto3 or snowflake connector)
-sudo apt install -y python3-pip
-sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
-pip3 install boto3
-sudo pip3 install --upgrade keyrings.alt
-sudo pip3 install --upgrade snowflake-connector-python
-
-printf '\n\n\nInstallation Complete\n\n\n'
+printf '\nInstallation Complete\n\n\a'

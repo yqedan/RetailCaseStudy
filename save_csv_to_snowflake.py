@@ -8,7 +8,7 @@ bucketName = "yusufqedanbucket"
 bucket = resource.Bucket(bucketName)
 aws_credentials = Session().get_credentials().get_frozen_credentials()
 
-file = open("/home/Yusuf/.snowflake_credentials", "r")
+file = open("/home/yusuf/.snowflake_credentials", "r")
 line = file.readline()[:-1]
 output = line.split(',')
 
