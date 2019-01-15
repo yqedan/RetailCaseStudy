@@ -7,14 +7,13 @@ sudo apt-get update
 sudo apt-get install -y default-jdk
 
 # python 3 installs
-sudo apt install -y python3-pip
 sudo curl https://bootstrap.pypa.io/get-pip.py | sudo python3
 sudo pip install boto3
 sudo pip install --upgrade keyrings.alt
 sudo pip install --upgrade snowflake-connector-python
 
 # spark install
-wget http://ftp.wayne.edu/apache/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
+wget https://archive.apache.org/dist/spark/spark-2.4.0/spark-2.4.0-bin-hadoop2.7.tgz
 tar -xvf spark-2.4.0-bin-hadoop2.7.tgz
 rm spark-2.4.0-bin-hadoop2.7.tgz
 mv spark-2.4.0-bin-hadoop2.7 spark
