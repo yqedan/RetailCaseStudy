@@ -47,26 +47,26 @@ start = DummyOperator(
 
 inc = BashOperator(
     task_id='incremental_load',
-    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/IncrementalLoads.py ",
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 ~/RetailCaseStudy/IncrementalLoads.py ",
     dag=dag
 )
 
 av_par = BashOperator(
     task_id='avro_parquet',
-    bash_command="spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    bash_command="spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  ~/RetailCaseStudy/AVRO_Parquet.py ",
     trigger_rule=TriggerRule.ONE_SUCCESS,
     dag=dag
 )
 
 par_agg = BashOperator(
     task_id='parquet_agg',
-    bash_command="spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
+    bash_command="spark-submit ~/RetailCaseStudy/Parquet_Agg.py ",
     dag=dag
 )
 
 init = BashOperator(
     task_id='initial_load',
-    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    bash_command="spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 ~/RetailCaseStudy/InitialLoads.py ",
     trigger_rule=TriggerRule.ONE_FAILED,
     dag=dag
 )
@@ -89,7 +89,7 @@ any_new_rows_task = ShortCircuitOperator(
 
 csv_snowflake = BashOperator(
     task_id="csv_snowflake",
-    bash_command="python3 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/save_csv_to_snowflake.py ",
+    bash_command="python3 ~/RetailCaseStudy/save_csv_to_snowflake.py ",
     dag=dag
 )
 
