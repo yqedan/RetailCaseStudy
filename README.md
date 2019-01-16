@@ -12,7 +12,11 @@
  * Execute setup_tables.sh to alter food_mart table
  * You will need to configure your S3 bucket and setup boto3 credentials [instructions here](https://github.com/boto/boto3)
  * Fix the scripts to run by changing the bucket name to yours in 5 files (will try to make this easier later but for now update InitialLoads.py, IncrementalLoads.py, AVRO_Parquet.py and Parquet_Agg.py, save_csv_to_snowflake.py and change the bucketName variable.)
-
+ * Create a snowflake credentials file with your account (or skip this part and comment that task out in the DAG):
+   ```
+   $ cd ~
+   $ echo "<snowflake user>,<snowflake password>,<snowflake_account>" >> .snowflake_credentials
+   ```
 ### Assignment:
 
   * Find total Promotion sales generated on weekdays and weekends for each region, year & month
@@ -24,7 +28,7 @@
   *	A second pySpark script will read the AVRO files, filter out all non-promotion records from input, join the promotion and sales tables and save the data in Parquet format in S3 buckets.
   *	The Parquet file is aggregated by regionID, promotionID, sales_year, sales_month to generate total StoreSales for weekdays and weekends and the output is saved as a CSV file in S3 buckets.
   *	The CSV file generated is loaded into a Snowflake database.
-  *	 Following queries are executed on the Snowflake table
+  *	Following queries are executed on the Snowflake table
 
     * Query1: List the total weekday sales & weekend sales for each promotions:
                    Following columns are required in output:
