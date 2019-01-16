@@ -28,24 +28,26 @@ dag = DAG(
     'retail_dag',
     default_args=default_args,
     description='A simple retail DAG',
-    schedule_interval=timedelta(days=1)
+    schedule_interval=timedelta(minutes=5),
+    max_active_runs=1,
+    catchup=False
 )
 
 t1 = BashOperator(
     task_id='initial_load',
-    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/InitialLoads.py ",
+    bash_command= "spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 ~/RetailCaseStudy/InitialLoads.py ",
     dag=dag
 )
 
 t2 = BashOperator(
     task_id='avro_parquet',
-    bash_command= "spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/AVRO_Parquet.py ",
+    bash_command= "spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0  ~/RetailCaseStudy/AVRO_Parquet.py ",
     dag=dag
 )
 
 t3 = BashOperator(
     task_id='parquet_agg',
-    bash_command= "spark-submit /mnt/c/Users/Yusuf/PycharmProjects/RetailCaseStudy/Parquet_Agg.py ",
+    bash_command= "spark-submit ~/RetailCaseStudy/Parquet_Agg.py ",
     dag=dag
 )
 
