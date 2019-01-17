@@ -2,7 +2,7 @@
 
 ### Objectives:
 
-#### In this project, we will be migrating an existing Retail Case Study project to use a New Architecture using PySpark, Apache Airflow and Snowflake.
+##### In this project, we will be migrating an existing Retail Case Study project to use a New Architecture using PySpark, Apache Airflow and Snowflake.
 
 ### Setup:
 
@@ -14,8 +14,7 @@
  * Fix the scripts to run by changing the bucket name to yours in 6 files (will try to make this easier later but for now update InitialLoads.py, IncrementalLoads.py, AVRO_Parquet.py and Parquet_Agg.py, save_csv_to_snowflake.py, dags/retail_dag.py and change the bucketName variable.)
  * Create a snowflake credentials file with your account (or skip this part and comment that task out in the DAG):
    ```
-   $ cd ~
-   $ echo "<snowflake user>,<snowflake password>,<snowflake_account>" >> .snowflake_credentials
+   $ echo "<snowflake user>,<snowflake password>,<snowflake_account>" >> ~/.snowflake_credentials
    ```
  * Copy the retail_dag in this repo into your airflow dags folder:
    ```
@@ -39,7 +38,7 @@
   * Find total Promotion sales generated on weekdays and weekends for each region, year & month
   * Find the most popular promotion which generated highest sales in each region
 
-#### Steps Involved:
+### Steps Involved:
 
   *	Create PySpark scripts for initial and incremental loads. The script will read sales and promotion tables based on last_update_date column from mysql and store them in AVRO format in S3 buckets. You might want to add a last_update_date in the tables
   *	A second PySpark script will read the AVRO files, filter out all non-promotion records from input, join the promotion and sales tables and save the data in Parquet format in S3 buckets.
