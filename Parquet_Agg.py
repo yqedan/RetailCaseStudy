@@ -1,4 +1,4 @@
-import boto3
+import setup_bucket
 import os
 import tempfile
 from pyspark.sql import SparkSession
@@ -13,9 +13,9 @@ spark = SparkSession.builder \
  .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
-client = boto3.client('s3')
-resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+client = setup_bucket.get_boto3_connection()[0]
+resource = setup_bucket.get_boto3_connection()[1]
+bucketName = setup_bucket.get_boto3_connection()[2]
 bucket = resource.Bucket(bucketName)
 
 

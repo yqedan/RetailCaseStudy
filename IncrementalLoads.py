@@ -1,5 +1,5 @@
 import sys
-import boto3
+import setup_bucket
 import os
 import tempfile
 from pyspark.sql import SparkSession
@@ -9,9 +9,9 @@ from pyspark.sql.types import *
 # Run script by using:
 # spark-submit --packages mysql:mysql-connector-java:5.1.38,org.apache.spark:spark-avro_2.11:2.4.0 IncrementalLoads.py
 
-client = boto3.client('s3')
-resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
+client = setup_bucket.get_boto3_connection()[0]
+resource = setup_bucket.get_boto3_connection()[1]
+bucketName = setup_bucket.get_boto3_connection()[2]
 bucket = resource.Bucket(bucketName)
 
 url = "jdbc:mysql://localhost:3306/food_mart"

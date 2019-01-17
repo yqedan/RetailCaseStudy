@@ -1,11 +1,8 @@
 import snowflake.connector
-import boto3
+import setup_bucket
 from boto3 import Session
 
-client = boto3.client('s3')
-resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
-bucket = resource.Bucket(bucketName)
+bucketName = setup_bucket.get_boto3_connection()[2]
 aws_credentials = Session().get_credentials().get_frozen_credentials()
 
 file = open("/home/yusuf/.snowflake_credentials", "r")
