@@ -27,7 +27,7 @@ from datetime import timedelta
 conn = setup_bucket.get_boto3_connection()
 resource = conn[1]
 bucketName = conn[2]
-bucket = conn
+bucket = resource.Bucket(bucketName)
 
 default_args = {
     'owner': 'airflow',
