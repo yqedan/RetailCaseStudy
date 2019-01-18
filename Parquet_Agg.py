@@ -13,9 +13,10 @@ spark = SparkSession.builder \
  .getOrCreate()
 spark.sparkContext.setLogLevel('WARN')
 
-client = setup_bucket.get_boto3_connection()[0]
-resource = setup_bucket.get_boto3_connection()[1]
-bucketName = setup_bucket.get_boto3_connection()[2]
+conn = setup_bucket.get_boto3_connection()
+client = conn[0]
+resource = conn[1]
+bucketName = conn[2]
 bucket = resource.Bucket(bucketName)
 
 

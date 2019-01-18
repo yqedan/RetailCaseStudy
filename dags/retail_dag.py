@@ -1,5 +1,8 @@
 import airflow
-import boto3
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import setup_bucket
 
 from airflow.models import DAG
 from airflow.operators.dummy_operator import DummyOperator
@@ -21,9 +24,10 @@ from datetime import timedelta
 # To get these airflow libraries for pycharm run this in windows shell
 # pip install apache-airflow --no-deps
 
-resource = boto3.resource('s3')
-bucketName = "yusufqedanbucket"
-bucket = resource.Bucket(bucketName)
+conn = setup_bucket.get_boto3_connection()
+resource = conn[1]
+bucketName = conn[2]
+bucket = conn
 
 default_args = {
     'owner': 'airflow',

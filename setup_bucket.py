@@ -1,3 +1,4 @@
+# You only need to change your bucket name in this one file now
 import boto3
 
 

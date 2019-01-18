@@ -7,9 +7,10 @@ from pyspark.sql.types import *
 # Run script by using:
 # spark-submit --packages org.apache.spark:spark-avro_2.11:2.4.0 AVRO_Parquet.py
 
-client = setup_bucket.get_boto3_connection()[0]
-resource = setup_bucket.get_boto3_connection()[1]
-bucketName = setup_bucket.get_boto3_connection()[2]
+conn = setup_bucket.get_boto3_connection()
+client = conn[0]
+resource = conn[1]
+bucketName = conn[2]
 bucket = resource.Bucket(bucketName)
 
 spark = SparkSession.builder \
