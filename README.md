@@ -2,7 +2,7 @@
 
 ### Objectives:
 
-##### In this project, we will be migrating an existing Retail Case Study project to use a New Architecture using PySpark, Apache Airflow and Snowflake.
+##### In this project, we will be migrating an [existing](https://github.com/yqedan/RetailCaseStudyHadoop) Retail Case Study project to use a New Architecture using PySpark, Apache Airflow and Snowflake.
 
 ### Setup:
 
